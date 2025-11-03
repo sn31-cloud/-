@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미래 AI 탐험: 기술, 윤리, 전략</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 280px;
+            max-height: 300px;
+        }
+
+        @media (min-width: 640px) {
+            .chart-container {
+                height: 300px;
+                max-height: 350px;
+            }
+        }
+
+        .nav-link {
+            padding: 1rem 0.75rem;
+            border-bottom: 2px solid transparent;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            color: #3B82F6;
+            border-bottom-color: #3B82F6;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .tab-btn:hover {
+            color: #4B5563;
+        }
+        .tab-btn.active {
+            color: #3B82F6;
+            border-bottom-color: #3B82F6;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        .accordion-btn {
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 1.125rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .accordion-btn:hover {
+            background-color: #F3F4F6;
+        }
+        .accordion-btn .icon::after {
+            content: '+';
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: #9CA3AF;
+            transition: transform 0.3s;
+        }
+        .accordion-btn.active .icon::after {
+            content: '−';
+            transform: rotate(180deg);
+        }
+        
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background-color: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-top: 0;
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+        .accordion-content div {
+            padding: 1.5rem;
+        }
+
+        .tech-card {
+            border: 1px solid #E5E7EB;
+            border-radius: 0.75rem;
+            background-color: #FFFFFF;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: box-shadow 0.3s, transform 0.3s;
+            overflow: hidden;
+        }
+        .tech-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .tech-card-content {
+            display: none;
+            padding: 1.5rem;
+            border-top: 1px solid #E5E7EB;
+        }
+        .tech-card-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'base-100': '#F9FAFB',
+                        'base-200': '#F3F4F6',
+                        'base-300': '#E5E7EB',
+                        'text-primary': '#1F2937',
+                        'text-secondary': '#4B5563',
+                        'accent-blue': '#3B82F6',
+                        'accent-red': '#EF4444',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-base-100 text-text-primary">
+
+    <!-- 
+      Chosen Palette: Calm Neutrals (Tailwind Grays/Blue)
+      Application Structure Plan: 
+      - 구조: 주제별 단일 페이지 애플리케이션 (SPA)
+      - 네비게이션: 상단 고정 네비게이션 바를 통해 '기술', '윤리', '산업', '결론' 등 핵심 주제 섹션으로 즉시 이동(스크롤)합니다.
+      - 설계 이유: 원본 보고서의 선형적 구조(1, 2, 3장)는 웹 탐색에 비효율적입니다. 사용자가 '모든 규제 내용'이나 '모든 산업 사례'처럼 관심 있는 주제를 바로 찾아볼 수 있도록 정보 아키텍처를 재설계했습니다.
+      - 핵심 상호작용:
+        1. '기술' 섹션: 'AGI', '멀티모달' 등 핵심 기술을 카드로 제시하고, 클릭 시 상세 내용이 나타나도록 하여 초기 화면을 간결하게 유지합니다.
+        2. '윤리' 및 '산업' 섹션: 복잡한 하위 주제들(예: EU AI 법, 일자리 문제, 산업별 사례)을 탭(Tab) 인터페이스로 그룹화하여 사용자가 선택적으로 탐색할 수 있게 합니다.
+        3. '결론' 섹션: 최종 결론과 3가지 시사점을 아코디언(Accordion)으로 제공하여, 사용자가 원하는 요점만 펼쳐 볼 수 있도록 합니다.
+      - 사용자 흐름: (상단 네비) -> (주제 섹션 선택) -> (탭 또는 카드 클릭) -> (상세 정보 확인). 이 구조는 사용자의 탐색 피로도를 줄이고 정보 접근성을 극대화합니다.
+      
+      Visualization & Content Choices:
+      - 1. [보고서 2.1] 미래 기술 (AGI, 멀티모달 등):
+        - 목표: 정보 제공, 정리
+        - 방법: 대화형 카드 (HTML/Tailwind/JS)
+        - 상호작용: 카드 헤더 클릭 시 상세 설명 토글 (펼치기/접기)
+        - 정당성: 긴 텍스트를 숨겨 초기 UI를 깔끔하게 유지하고 사용자의 능동적 탐색을 유도합니다.
+      - 2. [보고서 2.2.4] 일자리 영향 (고용 -7%p, 임금 -2%p):
+        - 목표: 정보 제공, 비교
+        - 방법: Chart.js 막대 그래프 (Canvas)
+        - 상호작용: 차트 바(bar)에 마우스 호버 시 툴팁으로 정확한 수치 표시
+        - 정당성: 텍스트로만 제시된 부정적인 통계(-7, -2)를 시각적으로 강조하여 그 영향을 즉각적으로 전달합니다. (라이브러리: Chart.js)
+      - 3. [보고서 2.2, 2.3] 윤리/규제 및 산업 전략 섹션:
+        - 목표: 정리, 조직화
+        - 방법: 탭 인터페이스 (HTML/Tailwind/JS)
+        - 상호작용: 'EU AI 법', '일자리', '핵심 산업' 등 관련 주제 탭 클릭 시 해당 내용만 표시
+        - 정당성: 복잡하고 방대한 보고서의 2장을 논리적 단위로 분해하여 사용자가 압도당하지 않고 단계적으로 정보를 소화할 수 있게 합니다.
+      - 4. [보고서 3.0] 결론 및 시사점:
+        - 목표: 정보 제공, 정리
+        - 방법: 아코디언 (HTML/Tailwind/JS)
+        - 상호작용: '결론' 또는 '시사점 1, 2, 3' 제목 클릭 시 상세 내용 펼치기
+        - 정당성: 보고서의 최종 요약본을 사용자가 선택적으로 읽을 수 있도록 하여 정보 소비의 효율성을 높입니다.
+      - 5. [보고서 표 3개] 기술 유형, 위험 카테고리, 산업 분야 표:
+        - 목표: 정리, 비교
+        - 방법: 스타일링된 HTML 테이블 (Tailwind)
+        - 상호작용: 정적 표시 (명확한 정보 전달)
+        - 정당성: 원본의 표 형식이 정보를 비교/요약하는 데 가장 효과적이므로, 가독성을 높인 HTML 테이블로 재구성합니다.
+
+      CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+
+    <!-- 상단 고정 네비게이션 -->
+    <header class="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md shadow-sm border-b border-base-300">
+        <div class="container mx-auto max-w-6xl px-4">
+            <nav class="flex justify-between items-center h-16">
+                <div class="text-xl font-bold text-accent-blue">
+                    미래 AI 리포트
+                </div>
+                <div class="hidden sm:flex space-x-1">
+                    <a href="#hero" class="nav-link font-medium text-text-secondary hover:text-accent-blue active">소개</a>
+                    <a href="#tech" class="nav-link font-medium text-text-secondary hover:text-accent-blue">기술과 혁신</a>
+                    <a href="#ethics" class="nav-link font-medium text-text-secondary hover:text-accent-blue">윤리와 규제</a>
+                    <a href="#industry" class="nav-link font-medium text-text-secondary hover:text-accent-blue">산업별 전략</a>
+                    <a href="#conclusion" class="nav-link font-medium text-text-secondary hover:text-accent-blue">결론 및 시사점</a>
+                </div>
+                <div class="sm:hidden">
+                    <button id="mobile-menu-btn" class="text-text-primary">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </nav>
+        </div>
+        <!-- 모바일 메뉴 -->
+        <div id="mobile-menu" class="hidden sm:hidden bg-white shadow-lg absolute w-full">
+            <a href="#hero" class="block py-3 px-5 text-text-secondary hover:bg-base-200 mobile-nav-link">소개</a>
+            <a href="#tech" class="block py-3 px-5 text-text-secondary hover:bg-base-200 mobile-nav-link">기술과 혁신</a>
+            <a href="#ethics" class="block py-3 px-5 text-text-secondary hover:bg-base-200 mobile-nav-link">윤리와 규제</a>
+            <a href="#industry" class="block py-3 px-5 text-text-secondary hover:bg-base-200 mobile-nav-link">산업별 전략</a>
+            <a href="#conclusion" class="block py-3 px-5 text-text-secondary hover:bg-base-200 mobile-nav-link">결론 및 시사점</a>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 영역 -->
+    <main class="container mx-auto max-w-5xl p-4 sm:p-8 pt-12">
+
+        <!-- 섹션 1: 히어로 (소개) -->
+        <section id="hero" class="text-center my-12 sm:my-20 scroll-mt-20">
+            <h1 class="text-4xl sm:text-5xl font-bold text-text-primary mb-6 leading-tight">
+                미래 AI, 어디까지 왔을까?
+            </h1>
+            <p class="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto mb-8">
+                AGI부터 융합 기술, 윤리 문제와 글로벌 규제까지.
+                본 보고서는 AI의 미래 방향성을 입체적으로 분석하고, 우리가 준비해야 할 전략적 시사점을 탐구합니다.
+            </p>
+            <p class="text-md text-text-secondary">(원본 보고서: 10323 이대찬)</p>
+        </section>
+
+        <!-- 섹션 2: 기술과 혁신 -->
+        <section id="tech" class="my-20 sm:my-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center text-text-primary mb-4">기술과 혁신: AI는 어디로 가는가?</h2>
+            <p class="text-lg text-text-secondary text-center max-w-3xl mx-auto mb-12">
+                AI 기술은 인간을 닮은 '범용 인공지능(AGI)'을 향해 나아가면서도, 여러 기술이 합쳐지는 '융합 지능'의 형태로 빠르게 진화하고 있습니다. 핵심 기술들을 클릭하여 자세한 내용을 확인해 보세요.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- 기술 카드 1: AGI -->
+                <div class="tech-card">
+                    <button class="tech-card-button w-full p-6 text-left">
+                        <h3 class="text-xl font-bold text-accent-blue mb-2">1. 범용 인공지능 (AGI)</h3>
+                        <p class="text-text-secondary">사람과 같거나 뛰어난 지능으로, 다양한 문제를 해결하는 AI의 궁극적인 목표입니다.</p>
+                    </button>
+                    <div class="tech-card-content">
+                        <p class="text-text-secondary">
+                            현재 AGI 연구는 거대 언어 모델(LLM)을 기반으로, 특정 데이터로 대화 방식을 배우게 하고(SFT), 사람이 직접 평가한 내용을 다시 학습시켜(RLHF) 성능과 윤리 기준을 높이는 방향으로 진행되고 있습니다.
+                            <br><br>
+                            AGI 훈련에 필요한 방대한 데이터를 국가 간에 원활히 이동시키기 위한 '동등성 인정 제도' 같은 정책적 기반이 기술 발전 속도의 중요 변수가 될 것입니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 기술 카드 2: 멀티모달 AI -->
+                <div class="tech-card">
+                    <button class="tech-card-button w-full p-6 text-left">
+                        <h3 class="text-xl font-bold text-accent-blue mb-2">2. 멀티모달 AI (융합)</h3>
+                        <p class="text-text-secondary">텍스트, 이미지, 소리 등 여러 형태의 데이터를 한 번에 처리하고 이해하는 융합 기술입니다.</p>
+                    </button>
+                    <div class="tech-card-content">
+                        <p class="text-text-secondary">
+                            디지털 콘텐츠의 폭발적 증가로, 멀티모달 AI 시장은 2034년까지 연평균 35.1%의 초고속 성장이 예상됩니다.
+                            <br><br>
+                            LLM의 창의성과 멀티모달의 데이터 통합 능력이 결합되어, 금융, 유통, 의료 등 다양한 산업의 효율성을 극대화하고 있습니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 기술 카드 3: 엣지 AI -->
+                <div class="tech-card">
+                    <button class="tech-card-button w-full p-6 text-left">
+                        <h3 class="text-xl font-bold text-accent-blue mb-2">3. 엣지 AI (분산 처리)</h3>
+                        <p class="text-text-secondary">클라우드 서버 없이 스마트폰, 자율주행차 등 기기 자체에서 데이터를 실시간 처리합니다.</p>
+                    </button>
+                    <div class="tech-card-content">
+                        <p class="text-text-secondary">
+                            네트워크 부담과 지연 시간을 획기적으로 줄여 실시간 반응이 중요한 자율주행, 웨어러블 기기 등에 필수적입니다.
+                            <br><br>
+                            로컬 기기의 한계 때문에, 향후 더 높은 성능을 위해 클라우드 컴퓨팅과의 유기적인 통합이 중요해질 것입니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 기술 카드 4: 양자 컴퓨팅 융합 -->
+                <div class="tech-card">
+                    <button class="tech-card-button w-full p-6 text-left">
+                        <h3 class="text-xl font-bold text-accent-blue mb-2">4. 차세대 컴퓨팅 (양자)</h3>
+                        <p class="text-text-secondary">양자 컴퓨팅, 새로운 신경망 아키텍처가 AI 발전의 물리적 한계를 돌파하고 있습니다.</p>
+                    </button>
+                    <div class="tech-card-content">
+                        <p class="text-text-secondary">
+                            2025년, 양자 컴퓨팅과 AI가 결합하여 복잡한 이미지 분석 속도를 100배 이상 높일 수 있다는 전망이 나옵니다.
+                            <br><br>
+                            또한, 전력 효율을 높인 새로운 신경망 설계는 AI 성능 향상뿐 아니라 환경 문제 해결에도 기여할 것으로 기대됩니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 기술 요약 테이블 -->
+            <div class="mt-12 bg-white p-6 rounded-lg shadow-sm border border-base-300 overflow-x-auto">
+                <h4 class="text-xl font-bold text-text-primary mb-4">핵심 기술 요약</h4>
+                <table class="w-full min-w-max text-left">
+                    <thead class="border-b-2 border-base-300">
+                        <tr>
+                            <th class="py-3 px-4 font-semibold">기술 유형</th>
+                            <th class="py-3 px-4 font-semibold">정의 및 핵심 기능</th>
+                            <th class="py-3 px-4 font-semibold">주요 역할 및 미래 전망</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-base-300">
+                        <tr class="hover:bg-base-200">
+                            <td class="py-3 px-4 font-medium text-accent-blue">범용 인공지능 (AGI)</td>
+                            <td class="py-3 px-4 text-text-secondary">사람 수준 이상의 똑똑한 AI. 다양한 문제 해결 가능</td>
+                            <td class="py-3 px-4 text-text-secondary">국가 안보에 큰 기회이자 위협. 전략적 대비가 필요함</td>
+                        </tr>
+                        <tr class="hover:bg-base-200">
+                            <td class="py-3 px-4 font-medium text-accent-blue">멀티모달 AI</td>
+                            <td class="py-3 px-4 text-text-secondary">글, 그림, 소리 등 여러 데이터를 한 번에 이해하고 합치는 기술</td>
+                            <td class="py-3 px-4 text-text-secondary">산업 효율과 창의성을 높임. (연평균 35.1% 예상)</td>
+                        </tr>
+                        <tr class="hover:bg-base-200">
+                            <td class="py-3 px-4 font-medium text-accent-blue">엣지 AI</td>
+                            <td class="py-3 px-4 text-text-secondary">클라우드 없이 기기 자체에서 데이터를 바로 실시간 처리</td>
+                            <td class="py-3 px-4 text-text-secondary">실시간 분석, 지연 시간 감소. 자율 주행, IoT에 필수</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 섹션 3: 윤리와 규제 -->
+        <section id="ethics" class="my-20 sm:my-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center text-text-primary mb-4">윤리와 규제: 어떻게 관리할 것인가?</h2>
+            <p class="text-lg text-text-secondary text-center max-w-3xl mx-auto mb-12">
+                AI의 발전은 '알고리즘 편향', '일자리 문제', '국가 안보 위협' 등 복잡한 사회적 숙제를 동시에 안겨주고 있습니다. 전 세계는 AI를 안전하게 관리하기 위한 규제 마련에 나서고 있습니다.
+            </p>
+
+            <!-- 윤리/규제 탭 컨테이너 -->
+            <div id="ethics-tabs" class="bg-white rounded-lg shadow-lg border border-base-300 overflow-hidden">
+                <div class="flex flex-wrap border-b-2 border-base-200 bg-base-100">
+                    <button class="tab-btn flex-1 min-w-[120px] active" data-tab="ethics-1">핵심 위험: 편향</button>
+                    <button class="tab-btn flex-1 min-w-[120px]" data-tab="ethics-2">글로벌 기준: EU AI 법</button>
+                    <button class="tab-btn flex-1 min-w-[120px]" data-tab="ethics-3">AGI와 국가 안보</button>
+                    <button class="tab-btn flex-1 min-w-[120px]" data-tab="ethics-4">일자리와 윤리 확장</button>
+                </div>
+
+                <div class="p-6 sm:p-8">
+                    <!-- 탭 1: 핵심 위험: 편향 -->
+                    <div id="ethics-1" class="tab-content active">
+                        <h3 class="text-2xl font-bold text-text-primary mb-4">AI 위험 관리와 알고리즘 편향</h3>
+                        <p class="text-text-secondary leading-relaxed">
+                            AI 위험 관리(AI Risk Management)는 AI의 안 좋은 영향을 최소화하고 좋은 점을 키우는 필수 과정입니다.
+                            <br><br>
+                            가장 흔한 위험은 '알고리즘 편향'입니다. AI가 학습한 데이터에 이미 존재하는 편견(예: 성별, 인종)을 그대로 물려받아, 채용이나 금융 심사 등에서 차별적인 결과를 낼 수 있습니다. 이를 막기 위해 지속적인 테스트와 모니터링이 반드시 필요합니다.
+                        </p>
+                    </div>
+
+                    <!-- 탭 2: EU AI 법 -->
+                    <div id="ethics-2" class="tab-content">
+                        <h3 class="text-2xl font-bold text-text-primary mb-4">EU AI 법: 위험도에 따른 차등 규제</h3>
+                        <p class="text-text-secondary leading-relaxed mb-6">
+                            전 세계 AI 규제의 표준으로 여겨지는 EU AI 법은 '위험 기반 접근 방식'을 채택했습니다. AI를 위험 수준별로 나누어 관리합니다.
+                        </p>
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-max text-left">
+                                <thead class="border-b-2 border-base-300">
+                                    <tr>
+                                        <th class="py-3 px-4 font-semibold">위험 카테고리</th>
+                                        <th class="py-3 px-4 font-semibold">규제 내용</th>
+                                        <th class="py-3 px-4 font-semibold">주요 의무사항</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-base-300">
+                                    <tr class="hover:bg-base-100">
+                                        <td class="py-3 px-4 font-medium text-accent-red">용납할 수 없는 위험</td>
+                                        <td class="py-3 px-4 text-text-secondary">사회적 신용 점수 등. 완전히 금지됨</td>
+                                        <td class="py-3 px-4 text-text-secondary">개발 및 배포 금지</td>
+                                    </tr>
+                                    <tr class="hover:bg-base-100">
+                                        <td class="py-3 px-4 font-medium text-orange-500">고위험 시스템</td>
+                                        <td class="py-3 px-4 text-text-secondary">의료, 채용 등 생명/안전에 영향</td>
+                                        <td class="py-3 px-4 text-text-secondary">꾸준한 위험 관리, 데이터 관리, 모니터링</td>
+                                    </tr>
+                                    <tr class="hover:bg-base-100">
+                                        <td class="py-3 px-4 font-medium text-accent-blue">범용 AI (GPAI)</td>
+                                        <td class="py-3 px-4 text-text-secondary">다양한 목적으로 쓰이는 큰 모델</td>
+                                        <td class="py-3 px-4 text-text-secondary">저작권 준수, 학습 데이터 요약 공개</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-6 p-4 bg-blue-50 border border-accent-blue rounded-lg">
+                            <h4 class="font-bold text-accent-blue">핵심 기준: $10^{25}$ FLOPs</h4>
+                            <p class="text-text-secondary mt-2">
+                                특히, 범용 AI가 $10^{25}$ 플롭스(FLOPs) 이상의 막대한 컴퓨팅 파워로 학습된 경우, '체계적 위험(Systemic Risk)'을 유발할 수 있다고 보고 추가적인 관리 책임을 부과합니다. 이는 기술 기업의 R&D 계획에 직접적인 영향을 주는 중요한 법적 기준입니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 탭 3: AGI와 국가 안보 -->
+                    <div id="ethics-3" class="tab-content">
+                        <h3 class="text-2xl font-bold text-text-primary mb-4">AGI와 국가 안보: 양날의 검</h3>
+                        <p class="text-text-secondary leading-relaxed mb-6">
+                            AGI는 국가 안보에 거대한 기회이자 심각한 위협입니다. 미국 보고서는 AGI의 위험을 다음과 같이 요약합니다.
+                        </p>
+                        <ul class="list-disc list-inside space-y-2 text-text-secondary">
+                            <li><span class="font-medium text-text-primary">'기적의 무기' 개발:</span> AGI가 군사적 균형을 무너뜨릴 초월적 발명을 해낼 가능성.</li>
+                            <li><span class="font-medium text-text-primary">민주주의 위협:</span> 대규모 자동화로 인한 실업, AI의 정치적 결정 개입.</li>
+                            <li><span class="font-medium text-text-primary">위험의 확산:</span> 비전문가나 테러리스트가 AGI를 악용하여 대량 살상무기를 개발할 가능성.</li>
+                        </ul>
+                        <p class="text-text-secondary leading-relaxed mt-6">
+                            따라서 민간(EU AI 법)과 군사(REAIM 등) 영역이 서로 협력하여 AI를 책임감 있게 활용하는 글로벌 문화를 만드는 것이 시급합니다.
+                        </p>
+                    </div>
+                    
+                    <!-- 탭 4: 일자리와 윤리 확장 -->
+                    <div id="ethics-4" class="tab-content">
+                        <h3 class="text-2xl font-bold text-text-primary mb-4">일자리 변화와 윤리의 확장</h3>
+                        <p class="text-text-secondary leading-relaxed mb-6">
+                            AI가 널리 퍼지면 일자리에 직접적인 영향을 줄 수 있습니다. 한 연구에 따르면, AI에 많이 노출되는 일자리일수록 고용 비중과 임금 상승률이 낮아지는 경향을 보였습니다.
+                        </p>
+                        
+                        <!-- 일자리 영향 차트 -->
+                        <div class="chart-container mb-8">
+                            <canvas id="jobImpactChart"></canvas>
+                        </div>
+                        
+                        <h4 class="text-xl font-bold text-text-primary mb-3 mt-10">윤리적 기준의 확장</h4>
+                        <p class="text-text-secondary leading-relaxed">
+                            AI 윤리 논의는 '인권'과 같은 인간 중심적 가치를 넘어, '생태적 번영(Ecological Flourishing)'으로 확장되고 있습니다. 이는 기술 발전 과정에서 인간이 생태계의 일부임을 인지하고, 환경(ESG)에 미치는 영향까지 고려해야 한다는 요구입니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 섹션 4: 산업별 전략 -->
+        <section id="industry" class="my-20 sm:my-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center text-text-primary mb-4">산업별 전략: AI는 어떻게 쓰이는가?</h2>
+            <p class="text-lg text-text-secondary text-center max-w-3xl mx-auto mb-12">
+                미국과 중국이 범용 AI(GPAI) 시장에서 경쟁하는 동안, 많은 기업과 국가는 각 산업에 특화된 '수직적 AI'를 통해 경쟁력을 확보하고 있습니다.
+            </p>
+
+            <!-- 산업별 전략 탭 컨테이너 -->
+            <div id="industry-tabs" class="bg-white rounded-lg shadow-lg border border-base-300 overflow-hidden">
+                <div class="flex flex-wrap border-b-2 border-base-200 bg-base-100">
+                    <button class="tab-btn flex-1 min-w-[120px] active" data-tab="industry-1">글로벌 경쟁</button>
+                    <button class="tab-btn flex-1 min-w-[120px]" data-tab="industry-2">핵심 산업 적용</button>
+                    <button class="tab-btn flex-1 min-w-[120px]" data-tab="industry-3">공공 부문 도입</button>
+                </div>
+
+                <div class="p-6 sm:p-8">
+                    <!-- 탭 1: 글로벌 경쟁 -->
+                    <div id="industry-1" class="tab-content active">
+                        <h3 class="text-2xl font-bold text-text-primary mb-4">글로벌 AI 시장 경쟁 동향</h3>
+                        <p class="text-text-secondary leading-relaxed">
+                            전 세계 AI 시장은 2030년대 중반까지 수천억 달러 규모로의 성장이 예상되며, 특히 '서비스형 AI(AI-as-a-Service)'가 큰 기회로 떠오르고 있습니다.
+                            <br><br>
+                            미국과 중국의 빅테크 기업들은 막대한 R&D 투자를 통해 시장 선점을 노리고 있습니다. 이들은 데이터센터를 확장하고 AI API를 통합하며, 유통, 미디어, 고객 경험 등 각 분야에 맞춘 '맞춤형 AI 전략'을 핵심 경쟁력으로 삼고 있습니다.
+                        </p>
+                    </div>
+
+                    <!-- 탭 2: 핵심 산업 적용 -->
+                    <div id="industry-2" class="tab-content">
+                        <h3 class="text-2xl font-bold text-text-primary mb-4">핵심 산업별 특화 AI 전략</h3>
+                        <p class="text-text-secondary leading-relaxed mb-6">
+                            범용 AI를 넘어, 각 산업의 고유한 문제를 해결하는 '수직적 특화 AI'가 실제 성과를 창출하고 있습니다.
+                        </p>
+                        
+                        <div class="mb-6">
+                            <h4 class="text-lg font-semibold text-text-primary">제조업 (스마트 팩토리)</h4>
+                            <p class="text-text-secondary mt-1">AI가 생산 공정 전반의 효율, 품질, 속도를 높입니다. LG전자는 AI 영상 검사로 불량률을 낮췄고, GS칼텍스는 AI 가상 센서로 공장 효율을 높였으며, HD한국조선해양은 AI로 선박 설계를 자동화했습니다.</p>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h4 class="text-lg font-semibold text-text-primary">의료 및 생명과학</h4>
+                            <p class="text-text-secondary mt-1">AI는 방대한 의료 데이터 처리와 단순 작업 자동화로 혁신을 돕니다. 신약 개발 분야에서는 AI를 활용해 약물 발견 속도를 최대 60%까지 향상시킨 사례도 있습니다.</p>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full min-w-max text-left">
+                                <thead class="border-b-2 border-base-300">
+                                    <tr>
+                                        <th class="py-3 px-4 font-semibold">산업 분야</th>
+                                        <th class="py-3 px-4 font-semibold">주요 적용 사례</th>
+                                        <th class="py-3 px-4 font-semibold">예상되는 핵심 성과</th>
+                                        <th class="py-3 px-4 font-semibold">효율성 향상 / 참고 사례</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-base-300">
+                                    <tr class="hover:bg-base-100">
+                                        <td class="py-3 px-4 font-medium text-accent-blue">제약 연구</td>
+                                        <td class="py-3 px-4 text-text-secondary">신약 발견 속도 향상, 데이터 처리</td>
+                                        <td class="py-3 px-4 text-text-secondary">R&D 기간 단축, 정확도 향상</td>
+                                        <td class="py-3 px-4 text-text-secondary">최대 60% 효율 향상</td>
+                                    </tr>
+                                    <tr class="hover:bg-base-100">
+                                        <td class="py-3 px-4 font-medium text-accent-blue">제조업</td>
+                                        <td class="py-3 px-4 text-text-secondary">AI 불량 검사, 공정 최적화</td>
+                                        <td class="py-3 px-4 text-text-secondary">품질 개선, 생산 중단 최소화</td>
+                                        <td class="py-3 px-4 text-text-secondary">LG전자, GS칼텍스 등</td>
+                                    </tr>
+                                    <tr class="hover:bg-base-100">
+                                        <td class="py-3 px-4 font-medium text-accent-blue">기후 과학</td>
+                                        <td class="py-3 px-4 text-text-secondary">양자 컴퓨터 활용 시뮬레이션</td>
+                                        <td class="py-3 px-4 text-text-secondary">환경 영향 예측 고도화</td>
+                                        <td class="py-3 px-4 text-text-secondary">40% 예측 정확도 향상</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 탭 3: 공공 부문 도입 -->
+                    <div id="industry-3" class="tab-content">
+                        <h3 class="text-2xl font-bold text-text-primary mb-4">공공 부문 AI 도입의 기회와 숙제</h3>
+                        <p class="text-text-secondary leading-relaxed mb-6">
+                            OECD 보고서에 따르면, 정부 기관들은 주로 공공 서비스 자동화나 맞춤형 서비스 제공에 AI를 활용하고 있습니다.
+                        </p>
+                        <p class="text-text-secondary leading-relaxed mb-6">
+                            하지만 '정책 결정', '정부 감독'과 같은 핵심 전략 분야에서의 AI 활용은 아직 미미합니다. 이는 정부가 AI를 충분히 신뢰하지 못하거나 시스템이 성숙하지 못했기 때문일 수 있습니다.
+                        </p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="p-4 bg-red-50 border border-red-300 rounded-lg">
+                                <h4 class="font-bold text-red-600">AI를 쓰지 못하는 위험</h4>
+                                <p class="text-text-secondary mt-2">
+                                    정부가 AI를 제대로 활용하지 못하면, AI의 잠재적 이익을 놓치고 민간 부문과의 기술 격차가 더 커지는 '위험'에 직면할 수 있습니다.
+                                </p>
+                            </div>
+                            <div class="p-4 bg-green-50 border border-green-400 rounded-lg">
+                                <h4 class="font-bold text-green-700">성공을 위한 조건</h4>
+                                <p class="text-text-secondary mt-2">
+                                    정부가 AI의 장점을 누리려면 '촉진 요소(데이터, 기술력)'와 '안전장치(규칙, 투명성)'를 동시에 갖춰야 합니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 섹션 5: 결론 및 시사점 -->
+        <section id="conclusion" class="my-20 sm:my-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center text-text-primary mb-4">결론 및 시사점</h2>
+            <p class="text-lg text-text-secondary text-center max-w-3xl mx-auto mb-12">
+                미래 AI 경쟁력은 단순히 기술을 잘 만드는 능력이 아니라, 기술 발전을 안전하고 윤리적으로 통제할 수 있는 '거버넌스 시스템'을 갖추는 능력에 달려있습니다.
+            </p>
+
+            <div class="space-y-4">
+                <!-- 아코디언 1: 결론 -->
+                <div>
+                    <button class="accordion-btn active">
+                        <span>종합 결론</span>
+                        <span class="icon"></span>
+                    </button>
+                    <div class="accordion-content" style="max-height: 500px;">
+                        <div>
+                            <p class="text-text-secondary leading-relaxed">
+                                미래 AI의 발전 방향은 궁극적으로 AGI를 바라보지만, 당장 현실에서는 멀티모달, 엣지 AI, 양자 컴퓨팅 융합 같은 혁신 기술을 통해 산업 전반의 변화를 주도할 것입니다.
+                                <br><br>
+                                하지만 이런 발전은 알고리즘 편향, 일자리 변화, 시스템적 위험 등 여러 문제를 동시에 가져옵니다. 따라서 앞으로의 경쟁력은 기술 자체가 아닌, EU AI Act처럼 위험을 미리 관리하고 통제하는 '거버넌스' 능력에 따라 결정될 것입니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 아코디언 2: 시사점 1 -->
+                <div>
+                    <button class="accordion-btn">
+                        <span>시사점 1: 위험 기반 규제 시스템 및 국제 공조</span>
+                        <span class="icon"></span>
+                    </button>
+                    <div class="accordion-content">
+                        <div>
+                            <ul class="list-disc list-inside space-y-2 text-text-secondary leading-relaxed">
+                                <li>EU AI Act의 '위험 기반 접근 방식'과 $10^{25}$ FLOPs 같은 '컴퓨팅 파워 기반 책임 기준'을 국내법에도 적용할 준비가 필요합니다.</li>
+                                <li>민간과 군사 영역을 넘나드는 AI 위험에 대응하기 위해, 국제적 AI 윤리 논의(REAIM 등)에 적극 참여하고 공조해야 합니다.</li>
+                                <li>대규모 데이터 확보를 위해 국가 간 개인정보 이동 규제를 서로 인정해주는 '동등성 인정 제도'를 신설하고 운영해야 합니다.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 아코디언 3: 시사점 2 -->
+                <div>
+                    <button class="accordion-btn">
+                        <span>시사점 2: 특화 AI 생태계 구축 및 정부 역량 강화</span>
+                        <span class="icon"></span>
+                    </button>
+                    <div class="accordion-content">
+                        <div>
+                            <ul class="list-disc list-inside space-y-2 text-text-secondary leading-relaxed">
+                                <li>빅테크가 주도하는 범용 AI 경쟁보다는, 한국이 강점을 가진 제조업(스마트 팩토리), 의료 등 특정 산업에 특화된 AI 솔루션에 집중 투자해야 합니다.</li>
+                                <li>정부 부처의 AI 전문성을 높이기 위해 전문가 풀(예: 초거대AI추진협의회)을 활용하고, AI가 정책 결정에 기여할 수 있도록 정부의 역량을 키워야 합니다.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 아코디언 4: 시사점 3 -->
+                <div>
+                    <button class="accordion-btn">
+                        <span>시사점 3: 사회적 안전망 확충 및 윤리 기준 확장</span>
+                        <span class="icon"></span>
+                    </button>
+                    <div class="accordion-content">
+                        <div>
+                            <ul class="list-disc list-inside space-y-2 text-text-secondary leading-relaxed">
+                                <li>AI로 인한 일자리 감소 및 임금 둔화 가능성에 대비해, 전 국민 대상 직업 전환 교육 및 재훈련 프로그램을 강화해야 합니다.</li>
+                                <li>AI 윤리 논의를 인간 중심 가치를 넘어, 에너지 효율화, 탄소 배출량 모니터링 등 환경 문제 해결(ESG) 영역까지 확장하여 실천해야 합니다.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="text-center py-10 mt-16 border-t border-base-300 bg-base-200">
+        <p class="text-text-secondary">
+            이 애플리케이션은 제공된 "미래 AI, 어디까지 왔을까?" 보고서(10323 이대찬)를 기반으로 생성되었습니다.
+        </p>
+        <p class="text-sm text-gray-500 mt-2">
+            AI Report Interactive SPA | 2025
+        </p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 차트 생성 ---
+            function createJobImpactChart() {
+                const ctx = document.getElementById('jobImpactChart');
+                if (!ctx) return;
+
+                const data = {
+                    labels: ['고용 비중 감소 (p)', '임금 상승률 둔화 (p)'],
+                    datasets: [{
+                        label: 'AI 노출도 증가(10%p)에 따른 영향',
+                        data: [-7, -2],
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.7)', // accent-red
+                            'rgba(248, 113, 113, 0.7)' // accent-red-light
+                        ],
+                        borderColor: [
+                            '#EF4444',
+                            '#F87171'
+                        ],
+                        borderWidth: 1
+                    }]
+                };
+                
+                const options = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: false,
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 13,
+                                    weight: '500'
+                                },
+                                color: '#1F2937'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.raw}%p 감소`;
+                                }
+                            }
+                        },
+                        annotation: {
+                           
+                        },
+                        datalabels: {
+                            display: false
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                };
+                
+                try {
+                    new Chart(ctx.getContext('2d'), {
+                        type: 'bar',
+                        data: data,
+                        options: options
+                    });
+                } catch (e) {
+                    console.error("Chart.js 생성 실패:", e);
+                }
+            }
+            
+            createJobImpactChart();
+
+            // --- 탭(Tab) 인터페이스 로직 ---
+            function setupTabs(tabContainerId) {
+                const container = document.getElementById(tabContainerId);
+                if (!container) return;
+
+                const tabButtons = container.querySelectorAll('.tab-btn');
+                const tabContents = container.querySelectorAll('.tab-content');
+
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const tabId = button.getAttribute('data-tab');
+
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+
+                        tabContents.forEach(content => {
+                            if (content.id === tabId) {
+                                content.classList.add('active');
+                            } else {
+                                content.classList.remove('active');
+                            }
+                        });
+                    });
+                });
+            }
+
+            setupTabs('ethics-tabs');
+            setupTabs('industry-tabs');
+
+            // --- 아코디언(Accordion) 로직 ---
+            const accordionButtons = document.querySelectorAll('.accordion-btn');
+            accordionButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    const isActive = button.classList.toggle('active');
+
+                    if (isActive) {
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                        content.classList.add('active');
+                    } else {
+                        content.style.maxHeight = '0';
+                        content.classList.remove('active');
+                    }
+                });
+            });
+
+            // --- 기술 카드(Tech Card) 토글 로직 ---
+            const techCardButtons = document.querySelectorAll('.tech-card-button');
+            techCardButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    const isActive = content.classList.toggle('active');
+                    
+                    if (isActive) {
+                        button.parentElement.classList.add('shadow-lg');
+                    } else {
+                        button.parentElement.classList.remove('shadow-lg');
+                    }
+                });
+            });
+
+            // --- 부드러운 스크롤 (네비게이션) ---
+            function smoothScroll(targetId) {
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    const headerOffset = 80; // 상단 네비 높이만큼 오프셋
+                    const elementPosition = targetElement.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+            
+            // 데스크탑 네비 링크
+            document.querySelectorAll('a.nav-link').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    smoothScroll(targetId);
+                    
+                    document.querySelectorAll('a.nav-link').forEach(link => link.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // 모바일 네비 링크
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            
+            document.querySelectorAll('a.mobile-nav-link').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    smoothScroll(targetId);
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+            
+            // 모바일 메뉴 토글
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // 스크롤에 따른 네비게이션 활성화
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('a.nav-link');
+            
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 90) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+
+        });
+    </script>
+</body>
+</html>

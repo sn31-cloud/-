@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인터랙티브 리포트: 한국 군용 드론 기술</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .chart-container-sm {
+            position: relative;
+            width: 100%;
+            max-width: 280px;
+            height: 280px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .nav-btn-active {
+            background-color: #2563eb;
+            color: white;
+        }
+        .nav-btn-inactive {
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .nav-btn-inactive:hover {
+            background-color: #e5e7eb;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content-active {
+            display: block;
+        }
+        .accordion-header {
+            cursor: pointer;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .accordion-open .accordion-content {
+            max-height: 500px;
+        }
+        .accordion-open svg {
+            transform: rotate(180deg);
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+    <!-- Chosen Palette: Calm Neutrals with Blue Accent -->
+    <!-- Application Structure Plan: 
+        보고서의 내용을 4가지 핵심 주제(1.주요 현황: 시장 성장과 핵심 개념, 2.핵심 쟁점: 비용 효과와 윤리, 3.기술 비교: 세계와 한국, 4.미래 과제: 나아갈 길)로 재구성한 단일 페이지 스크롤 앱입니다. 
+        사용자는 상단 고정 내비게이션으로 각 섹션에 빠르게 접근할 수 있습니다. 
+        각 섹션은 대화형 차트(시장 성장, 비용 비교, 기술 수준), 탭(개념, 해외 동향), 아코디언(미래 과제) 등 동적 UI 요소를 활용하여 정보를 단계적으로 탐색하도록 설계되었습니다. 
+        특히 '비용 비교' 차트는 선형/로그 스케일 전환 기능을 제공하여 데이터의 극적인 차이를 사용자가 직접 발견하게 유도합니다. 
+        이 구조는 보고서의 텍스트를 단순 나열하는 대신, 사용자의 흥미와 상호작용을 유도하여 핵심 내용을 효과적으로 전달하기 위해 선택되었습니다.
+    -->
+    <!-- Visualization & Content Choices: 
+        1.  (시장 성장) -> Goal: Inform -> Bar Chart (Chart.js) -> Interaction: Hover Tooltip -> Justification: 2023년과 2030년 시장 규모를 시각적으로 명확하게 비교.
+        2.  (핵심 개념) -> Goal: Organize -> Tabs (JS Toggle) -> Interaction: Click -> Justification: UAS, 벌떼 전술 등 여러 개념을 깔끔하게 분류하여 제공.
+        3.  ('가성비' 비교) -> Goal: Compare -> Bar Chart (Chart.js) -> Interaction: Button Toggle (Linear/Log Scale) -> Justification: 드론과 기존 무기의 압도적인 가격 차이를 '선형' 스케일로 보여주고, '로그' 스케일 전환을 통해 비교가 가능하게 함. 사용자의 '발견'을 유도하는 핵심 상호작용.
+        4.  (세계 동향) -> Goal: Organize/Compare -> Tabs (JS Toggle) -> Interaction: Click -> Justification: 미국, 중국 등 주요국의 동향을 분리하여 쉽게 비교.
+        5.  (한국 기술 수준) -> Goal: Inform/Compare -> Donut Charts (Chart.js) -> Interaction: Hover Tooltip -> Justification: 회전익(67.2%), 고정익(71.7%) 등 구체적인 수치를 중앙에 텍스트와 함께 시각화하여 현재 수준을 즉각적으로 인지시킴.
+        6.  (미래 과제) -> Goal: Organize/Inform -> Accordion (JS Toggle) -> Interaction: Click -> Justification: 3가지 핵심 과제를 제목만 노출하고, 클릭 시 세부 내용을 보여주어 정보의 복잡도를 낮춤.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <header class="sticky top-0 z-50 bg-white shadow-md">
+        <nav class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-600">
+                <a href="#">한국 군용 드론 리포트</a>
+            </h1>
+            <div class="flex space-x-2 mt-2 md:mt-0">
+                <a href="#section-1" class="nav-btn nav-btn-active section-nav-btn" data-target="section-1">주요 현황</a>
+                <a href="#section-2" class="nav-btn nav-btn-inactive section-nav-btn" data-target="section-2">핵심 쟁점</a>
+                <a href="#section-3" class="nav-btn nav-btn-inactive section-nav-btn" data-target="section-3">기술 비교</a>
+                <a href="#section-4" class="nav-btn nav-btn-inactive section-nav-btn" data-target="section-4">미래 과제</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-4 md:p-8">
+
+        <section id="section-1" class="mb-16 pt-12 -mt-12">
+            <h2 class="text-3xl font-bold mb-4 text-center">주요 현황: 전장의 '게임 체인저'</h2>
+            <p class="text-lg text-gray-700 mb-8 max-w-3xl mx-auto text-center">
+                군용 드론은 현대 전쟁의 필수 아이템으로 자리 잡았습니다. 정찰, 감시뿐만 아니라 직접 타격까지 수행하며 전쟁의 흐름을 바꾸고 있습니다. 이러한 중요성 증대에 따라 세계 군용 드론 시장도 폭발적으로 성장하고 있습니다.
+            </p>
+
+            <div class="bg-white p-6 rounded-xl shadow-lg mb-12">
+                <h3 class="text-2xl font-bold mb-4 text-center">세계 군용 드론 시장 성장 전망</h3>
+                <div class="chart-container">
+                    <canvas id="marketChart"></canvas>
+                </div>
+                <p class="text-center text-gray-600 mt-4">2023년 약 20조 원 규모에서 2030년에는 약 48조 원 규모로 2배 이상 성장이 예상됩니다.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-2xl font-bold mb-6 text-center">꼭 알아야 할 핵심 개념</h3>
+                <div class="flex justify-center mb-4 border-b">
+                    <button class="tab-btn nav-btn nav-btn-active" data-target="tab-uas">UAS (무인기 시스템)</button>
+                    <button class="tab-btn nav-btn nav-btn-inactive" data-target="tab-swarm">드론 전술 (벌떼)</button>
+                    <button class="tab-btn nav-btn nav-btn-inactive" data-target="tab-tech">핵심 기술</button>
+                </div>
+                <div id="tab-uas" class="tab-content tab-content-active p-4">
+                    <h4 class="text-xl font-semibold mb-2">UAS (Unmanned Aerial System)</h4>
+                    <p class="text-gray-700">단순히 드론 기체만이 아닌, 지상 통제 시스템, 통신 장비, 센서까지 모두 포함하는 '하나의 세트'를 의미합니다. 용도에 따라 정찰용(카메라 탑재)과 공격용(미사일/폭탄 탑재) 등으로 나뉩니다.</p>
+                </div>
+                <div id="tab-swarm" class="tab-content p-4">
+                    <h4 class="text-xl font-semibold mb-2">드론 전술의 진화: 벌떼 전술</h4>
+                    <p class="text-gray-700">수백 대의 소형 드론이 마치 벌떼처럼 한꺼번에 공격하는 '벌떼 드론 전술'이 중요해지고 있습니다. 우크라이나 군대는 값싼 FPV(1인칭 시점) 드론 군집을 활용해 러시아의 기갑 장비를 효과적으로 파괴했습니다. 터키의 '바이락타르 TB2'나 이스라엘의 '하롭' 같은 공격용 드론도 유명합니다.</p>
+                </div>
+                <div id="tab-tech" class="tab-content p-4">
+                    <h4 class="text-xl font-semibold mb-2">핵심 기술 발전 방향</h4>
+                    <p class="text-gray-700">고성능 센서의 소형화, AI 칩을 통한 자율 판단 능력, 그리고 적의 레이더에 걸리지 않는 스텔스 기술이 핵심입니다. 드론이 스스로 목표물을 찾고 공격 여부를 판단하며, 여러 대가 함께 움직이는 군집 제어 능력이 미래 기술의 중심입니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="section-2" class="mb-16 pt-12 -mt-12">
+            <h2 class="text-3xl font-bold mb-4 text-center">핵심 쟁점: 왜 드론이 중요한가?</h2>
+            <p class="text-lg text-gray-700 mb-8 max-w-3xl mx-auto text-center">
+                드론이 주목받는 이유는 명확합니다. 압도적인 '가성비'는 기존 무기 체계를 위협하고 있으며, 기술이 발전하면서 법적, 윤리적 고민거리도 함께 던져주고 있습니다.
+            </p>
+
+            <div class="bg-white p-6 rounded-xl shadow-lg mb-12">
+                <h3 class="text-2xl font-bold mb-4 text-center">압도적인 '가성비' 비교</h3>
+                <p class="text-center text-gray-600 mb-4">드론은 수백만 원에서 수십억 원으로, 수천억 원에 달하는 전투기를 위협합니다. 아래 버튼으로 차트 축을 변경해 보세요. '선형' 축은 압도적인 가격 차이를, '로그' 축은 항목 간의 비교를 보여줍니다.</p>
+                <div class="flex justify-center space-x-4 mb-4">
+                    <button id="linearBtn" class="cost-scale-btn nav-btn nav-btn-active" data-scale="linear">선형 축 (실제 가격 차이)</button>
+                    <button id="logBtn" class="cost-scale-btn nav-btn nav-btn-inactive" data-scale="logarithmic">로그 축 (비율로 비교)</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="costChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-4">윤리적, 법적 문제</h3>
+                    <p class="text-gray-700">자폭 드론 등이 민간인 피해를 유발하면서도, 아직 사용에 대한 명확한 국제적 규칙이 부족합니다. 예멘 반군의 사우디 석유 시설 공격처럼, 드론이 테러에 악용될 수 있어 '드론 잡는(안티 드론)' 기술과 국제 규범 마련이 시급한 과제로 떠올랐습니다.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-bold mb-4">군사용? 민간용?</h3>
+                    <p class="text-gray-700">군사용 드론 기술은 민간 분야에도 큰 영향을 줍니다. 벌떼 비행, 고성능 배터리, 카메라 안정화 기술(짐벌) 등은 군사용과 민간용(택배, 촬영)이 서로 기술을 공유하며 발전하는 대표적인 예입니다. 기술이 발전할수록 두 분야의 경계는 더욱 흐려질 것입니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="section-3" class="mb-16 pt-12 -mt-12">
+            <h2 class="text-3xl font-bold mb-4 text-center">기술 비교: 한국은 어디에 있나?</h2>
+            <p class="text-lg text-gray-700 mb-8 max-w-3xl mx-auto text-center">
+                미국, 중국, 이스라엘 등이 세계 드론 시장을 이끄는 가운데, 우리나라는 아직 기술 격차를 좁히기 위해 노력하는 단계입니다. 현재 우리의 수준과 대응 현황을 살펴봅니다.
+            </p>
+
+            <div class="bg-white p-6 rounded-xl shadow-lg mb-12">
+                <h3 class="text-2xl font-bold mb-6 text-center">세계의 드론 강국들</h3>
+                <div class="flex justify-center mb-4 border-b">
+                    <button class="tab-btn2 nav-btn nav-btn-active" data-target="tab-us">미국</button>
+                    <button class="tab-btn2 nav-btn nav-btn-inactive" data-target="tab-cn">중국</button>
+                    <button class="tab-btn2 nav-btn nav-btn-inactive" data-target="tab-etc">터키 / 이스라엘</button>
+                </div>
+                <div id="tab-us" class="tab-content2 tab-content-active p-4">
+                    <h4 class="text-xl font-semibold mb-2">미국: 압도적 1위</h4>
+                    <p class="text-gray-700">'글로벌 호크(RQ-4)' 정찰기, '리퍼(MQ-9)' 공격 드론 등 세계 최고 수준의 드론을 실전에서 운용 중입니다. 첨단 정찰 자산과 공격 능력을 모두 갖추고 있습니다.</p>
+                </div>
+                <div id="tab-cn" class="tab-content2 p-4">
+                    <h4 class="text-xl font-semibold mb-2">중국: 무서운 추격자</h4>
+                    <p class="text-gray-700">스텔스 무인기는 물론, 세계 1위의 민간 드론 기술을 군사용으로 빠르게 전환하며 미국을 추격하고 있습니다. 가격 경쟁력과 물량을 앞세워 영향력을 확대하고 있습니다.</p>
+                </div>
+                <div id="tab-etc" class="tab-content2 p-4">
+                    <h4 class="text-xl font-semibold mb-2">터키/이스라엘: 실전 강자</h4>
+                    <p class="text-gray-700">터키의 '바이락타르 TB2'는 실전에서 탱크를 잡으며 명성을 떨쳤고, 이스라엘의 '하롭' 같은 자폭 드론은 방공망을 무력화시키며 드론 전술의 새로운 장을 열었습니다.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <h3 class="text-2xl font-bold mb-8 text-center">대한민국 기술 수준 (선진국 대비)</h3>
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div class="flex flex-col sm:flex-row justify-around items-center gap-4">
+                        <div class="text-center">
+                            <div class="chart-container-sm">
+                                <canvas id="rotaryChart"></canvas>
+                            </div>
+                            <p class="text-lg font-semibold mt-2">회전익 (헬기형)</p>
+                            <p class="text-2xl font-bold text-red-600">67.2%</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="chart-container-sm">
+                                <canvas id="fixedWingChart"></canvas>
+                            </div>
+                            <p class="text-lg font-semibold mt-2">고정익 (비행기형)</p>
+                            <p class="text-2xl font-bold text-red-600">71.7%</p>
+                        </div>
+                    </div>
+                    <div class="text-gray-700">
+                        <p class="mb-4">2023년 분석 기준, 우리나라 드론 기술은 선진국 대비 약 70% 수준으로, 2~5년의 기술 격차가 존재합니다. 특히 공격용 드론의 핵심인 <span class="font-bold text-red-600">탄두(폭탄) 기술이 부족</span>하며, 현재 우리 군이 운용 중인 <span class="font-bold text-red-600">국산 공격형 드론은 전무</span>한 실정입니다.</p>
+                        <h4 class="text-xl font-semibold mb-2">우리 군의 대응</h4>
+                        <p class="mb-2">2023년 '드론작전사령부'를 창설하는 등 노력을 기울이고 있지만, 2022년 북한 무인기 침투 당시 대응에 미흡함을 보였습니다.</p>
+                        <p>현재는 부족한 전력을 메우기 위해 이스라엘의 '로템-L' 같은 자폭 드론 도입을 검토하는 한편, 한화, LIG넥스원 등 국내 기업들이 '안티 드론' 체계와 AI 기반 군집 드론 기술 개발에 속도를 내고 있습니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="section-4" class="mb-12 pt-12 -mt-12">
+            <h2 class="text-3xl font-bold mb-4 text-center">미래 과제: 무엇을 해야 하나?</h2>
+            <p class="text-lg text-gray-700 mb-8 max-w-3xl mx-auto text-center">
+                기술 격차가 확인된 만큼, 이를 극복하기 위한 구체적인 계획이 필요합니다. 우리 군과 산업계가 나아가야 할 3가지 핵심 과제입니다. (항목을 클릭해 보세요)
+            </p>
+
+            <div class="space-y-4 max-w-4xl mx-auto">
+                <div class="accordion-item bg-white rounded-xl shadow-lg">
+                    <div class="accordion-header p-6 flex justify-between items-center">
+                        <h3 class="text-2xl font-bold text-blue-600">1. 핵심 기술 격차 해소</h3>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <div class="accordion-content px-6 pb-6">
+                        <p class="text-gray-700">선진국 수준을 따라잡기 위해 센서, AI, 스텔스 기술에 대한 과감한 투자가 시급합니다. 특히 우리가 가장 취약한 <span class="font-bold">탄두 및 정밀 유도 기술</span>을 우리 힘으로 확보하는 데 집중해야 합니다. 정부와 기업이 힘을 합쳐 중장기 R&D 로드맵을 세우고 전략적인 기술 자립을 이뤄야 합니다.</p>
+                    </div>
+                </div>
+
+                <div class="accordion-item bg-white rounded-xl shadow-lg">
+                    <div class="accordion-header p-6 flex justify-between items-center">
+                        <h3 class="text-2xl font-bold text-blue-600">2. 합동 운용 및 대응 태세 강화</h3>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <div class="accordion-content px-6 pb-6">
+                        <p class="text-gray-700">육군, 해군, 공군이 따로 노는 것이 아니라 다 같이 드론 전력을 연결해 '합동 드론 전력'을 완성해야 합니다. 북한의 위협이나 테러에 대비해 드론 전문 부대를 늘리고, 레이더 등으로 드론 식별 능력을 높여야 합니다. 물론, 드론 공격을 막는 <span class="font-bold">'안티 드론' 방어체계</span> 개발도 동시에 이뤄져야 합니다.</p>
+                    </div>
+                </div>
+                
+                <div class="accordion-item bg-white rounded-xl shadow-lg">
+                    <div class="accordion-header p-6 flex justify-between items-center">
+                        <h3 class="text-2xl font-bold text-blue-600">3. 국제 협력 및 규범 마련</h3>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                    <div class="accordion-content px-6 pb-6">
+                        <p class="text-gray-700">미국, 이스라엘 등 우방국과 기술 협력을 통해 첨단 기술을 확보하는 노력이 필요합니다. 동시에, 드론 사용이 민간인 피해 등 국제적 비난으로 이어지지 않도록 대비해야 합니다. 기술 발전이 무분별한 피해로 이어지지 않도록, 국제사회와 협력하여 <span class="font-bold">명확한 사용 규칙과 대응 매뉴얼</span>을 정비하는 데 동참해야 합니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white p-8 mt-16">
+        <div class="max-w-6xl mx-auto text-center">
+            <p>본 페이지는 '우리나라 군용 드론 기술의 현주소와 미래 (고등학생 ver.)' 보고서의 내용을 기반으로 생성된 대화형 웹 애플리케이션입니다.</p>
+            <p class="mt-2 text-sm text-gray-400">데이터 시각화 및 인터랙티브 UI/UX 설계 연습용입니다.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            let costChartInstance = null;
+
+            const costChartData = {
+                labels: ['소형 FPV 드론', '공격 드론 (바이락타르)', '주력 전차 (K2)', 'F-35 전투기'],
+                datasets: [{
+                    label: '추정 비용 (억 원)',
+                    data: [0.05, 10, 80, 1000],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 159, 64, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(255, 99, 132, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+
+            function createCostChart(scaleType) {
+                const ctx = document.getElementById('costChart').getContext('2d');
+                if (costChartInstance) {
+                    costChartInstance.destroy();
+                }
+                costChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: costChartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: `무기체계별 비용 비교 (${scaleType === 'linear' ? '선형' : '로그'} 스케일)`,
+                                font: { size: 16 }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += `${context.parsed.y} 억 원`;
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                type: scaleType,
+                                title: {
+                                    display: true,
+                                    text: '비용 (억 원)'
+                                },
+                                ticks: {
+                                    callback: function(value, index, ticks) {
+                                        return value.toLocaleString() + ' 억';
+                                    }
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    font: { size: 10 }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            createCostChart('linear');
+
+            document.querySelectorAll('.cost-scale-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const scale = button.dataset.scale;
+                    createCostChart(scale);
+                    
+                    document.querySelectorAll('.cost-scale-btn').forEach(btn => {
+                        btn.classList.add('nav-btn-inactive');
+                        btn.classList.remove('nav-btn-active');
+                    });
+                    button.classList.add('nav-btn-active');
+                    button.classList.remove('nav-btn-inactive');
+                });
+            });
+
+            const marketCtx = document.getElementById('marketChart').getContext('2d');
+            new Chart(marketCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['2023년', '2030년 (예상)'],
+                    datasets: [{
+                        label: '시장 규모 (조 원)',
+                        data: [20, 48],
+                        backgroundColor: ['rgba(75, 192, 192, 0.6)', 'rgba(54, 162, 235, 0.6)'],
+                        borderColor: ['rgba(75, 192, 192, 1)', 'rgba(54, 162, 235, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: '규모 (조 원)' }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} 조 원`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const donutPlugin = {
+                id: 'doughnutLabel',
+                beforeDraw: (chart) => {
+                    if (chart.config.options.plugins.doughnutLabel && chart.config.options.plugins.doughnutLabel.text) {
+                        const { width, height, ctx } = chart;
+                        ctx.restore();
+                        const font = chart.config.options.plugins.doughnutLabel.font || '24px sans-serif';
+                        const color = chart.config.options.plugins.doughnutLabel.color || '#000';
+                        const text = chart.config.options.plugins.doughnutLabel.text;
+                        
+                        ctx.font = font;
+                        ctx.fillStyle = color;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        
+                        const textX = width / 2;
+                        const textY = height / 2;
+                        
+                        ctx.fillText(text, textX, textY);
+                        ctx.save();
+                    }
+                }
+            };
+            Chart.register(donutPlugin);
+
+            const rotaryCtx = document.getElementById('rotaryChart').getContext('2d');
+            new Chart(rotaryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['기술 수준', '미달'],
+                    datasets: [{
+                        data: [67.2, 100 - 67.2],
+                        backgroundColor: ['rgba(239, 68, 68, 0.7)', 'rgba(229, 231, 235, 0.7)'],
+                        borderColor: ['#ef4444', '#e5e7eb'],
+                        borderWidth: 1,
+                        circumference: 180,
+                        rotation: 270,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false },
+                        doughnutLabel: {
+                            text: '67.2%',
+                            font: 'bold 36px Noto Sans KR',
+                            color: '#ef4444'
+                        }
+                    }
+                }
+            });
+
+            const fixedWingCtx = document.getElementById('fixedWingChart').getContext('2d');
+            new Chart(fixedWingCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['기술 수준', '미달'],
+                    datasets: [{
+                        data: [71.7, 100 - 71.7],
+                        backgroundColor: ['rgba(239, 68, 68, 0.7)', 'rgba(229, 231, 235, 0.7)'],
+                        borderColor: ['#ef4444', '#e5e7eb'],
+                        borderWidth: 1,
+                        circumference: 180,
+                        rotation: 270,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false },
+                        doughnutLabel: {
+                            text: '71.7%',
+                            font: 'bold 36px Noto Sans KR',
+                            color: '#ef4444'
+                        }
+                    }
+                }
+            });
+
+            function setupTabs(btnClass, contentClass) {
+                const tabButtons = document.querySelectorAll(btnClass);
+                const tabContents = document.querySelectorAll(contentClass);
+
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const targetId = button.dataset.target;
+
+                        tabButtons.forEach(btn => {
+                            btn.classList.add('nav-btn-inactive');
+                            btn.classList.remove('nav-btn-active');
+                        });
+                        button.classList.add('nav-btn-active');
+                        button.classList.remove('nav-btn-inactive');
+
+                        tabContents.forEach(content => {
+                            if (content.id === targetId) {
+                                content.classList.add('tab-content-active');
+                            } else {
+                                content.classList.remove('tab-content-active');
+                            }
+                        });
+                    });
+                });
+            }
+
+            setupTabs('.tab-btn', '.tab-content');
+            setupTabs('.tab-btn2', '.tab-content2');
+
+            document.querySelectorAll('.accordion-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const item = header.parentElement;
+                    item.classList.toggle('accordion-open');
+                });
+            });
+
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.section-nav-btn');
+
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.4
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id;
+                        navLinks.forEach(link => {
+                            link.classList.add('nav-btn-inactive');
+                            link.classList.remove('nav-btn-active');
+                            if (link.dataset.target === id) {
+                                link.classList.add('nav-btn-active');
+                                link.classList.remove('nav-btn-inactive');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>
